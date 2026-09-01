@@ -26,7 +26,7 @@ Important framing: the vast majority of this tool is deterministic rule-based lo
 IPsec misconfigurations (weak ciphers, deprecated hashes, small DH groups, disabled PFS) are common and invisible without expert manual review.
 Existing protocol analysis tools (Wireshark, tcpdump) provide raw visibility but require expert interpretation — there's no automated, actionable "is this secure?" answer.
 Post-quantum readiness is an emerging requirement for government/defense infrastructure; this tool provides an early, cheap way to flag deployments still using classical (non-PQC) key exchange.
-4. Architecture
+4. Architecture ```
                 [ Captured .pcap file ]
                           |
                           v
@@ -61,7 +61,8 @@ Post-quantum readiness is an emerging requirement for government/defense infrast
           |   - PQC risk flag              |
           |   - Downloadable fixed config  |
           +-------------------------------+
-5. Tech Stack
+   ```
+6. Tech Stack
 Component	Tool
 Test environment	Docker containers running strongSwan (simulating two IPsec endpoints)
 Packet capture	tcpdump
@@ -70,7 +71,7 @@ Scoring logic	Python (rule-based, no ML)
 Dashboard	Streamlit
 Report export	fpdf2
 OS	Kali Linux (disk install)
-6. Reproducing the Test Environment
+7. Reproducing the Test Environment
 
 The project simulates two IPsec endpoints ("office-a" and "office-b") using Docker containers instead of physical machines, since standing up real cross-network IPsec tunnels for testing is unnecessary overhead — the protocol behavior is identical.
 
@@ -80,24 +81,24 @@ sudo apt update && sudo apt full-upgrade -y
 sudo apt install -y strongswan strongswan-pki tcpdump tshark python3 python3-pip python3-venv git curl ca-certificates
 
 # Docker
-sudo install -m 0755 -d /etc/apt/keyrings
+``` sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" | sudo tee /etc/apt/sources.list.d/docker.list
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo usermod -aG docker $USER && newgrp docker
-
+```
 Known issue: on some live-boot/overlay-filesystem Linux setups, Docker's default overlay2 storage driver fails to start containers (failed to mount ... fstype: overlay ... err: invalid argument) because you can't stack overlayfs on overlayfs. Fix by forcing the vfs storage driver:
-
+```
 bash
 sudo mkdir -p /etc/docker
 echo '{ "storage-driver": "vfs" }' | sudo tee /etc/docker/daemon.json
 sudo systemctl restart docker
-
+```
 This does not occur on a normal disk-based Linux install.
 
-6.2 Python environment
+6.2 Python environment```
 bash
 mkdir -p ~/sih26160/{engine,captures,configs,dashboard}
 cd ~/sih26160
@@ -114,6 +115,7 @@ docker run -dit --name office-b --network ipsec-net --ip 172.28.0.20 \
 
 docker exec office-a bash -c "apt update && apt install -y strongswan strongswan-swanctl iproute2 iputils-ping tcpdump"
 docker exec office-b bash -c "apt update && apt install -y strongswan strongswan-swanctl iproute2 iputils-ping tcpdump"
+```
 6.4 Configure and capture each security profile
 
 Three profiles are used to demonstrate the analyzer distinguishing strong vs. weak configurations:
@@ -124,7 +126,7 @@ Medium	AES-128-CBC / SHA-1	MODP 2048 (Group 14)	Enabled
 Weak	AES-128-CBC / SHA-1	MODP 1024 (Group 2)	Disabled
 
 Example swanctl.conf (Strong profile, office-a side — mirror IPs for office-b):
-
+```
 connections {
    office-tunnel {
       local_addrs  = 172.28.0.10
@@ -150,9 +152,9 @@ secrets {
       secret = "TestPSK123!"
    }
 }
-
+```
 Load and capture — critically, start the packet capture BEFORE initiating the tunnel, not after:
-
+```
 bash
 docker exec office-a bash -c "ipsec start && sleep 2 && swanctl --load-all"
 docker exec office-b bash -c "ipsec start && sleep 2 && swanctl --load-all"
@@ -164,16 +166,17 @@ docker exec office-a ping -c 3 172.28.0.20
 wait
 
 docker cp office-a:/tmp/strong.pcap ~/sih26160/captures/strong.pcap
-
+```
 Repeat with the Medium and Weak swanctl.conf variants (terminate the existing tunnel first with swanctl --terminate --ike office-tunnel, overwrite the config, reload, then repeat the capture-before-initiate sequence) to produce medium.pcap and weak.pcap.
 
 Lesson learned (see §8): capturing traffic after a tunnel is already established only captures ESP (encrypted) and ICMP traffic — the IKE negotiation itself, which is where the cipher/DH group/PFS information actually lives in cleartext, happens seconds earlier and will be missed entirely. Always start the capture first, then bring the tunnel up.
 
 7. Running the Analyzer
+```
 bash
 source venv/bin/activate
 streamlit run dashboard/app.py
-
+```
 Upload any of the three sample pcaps (or a real IPsec capture) to see the extracted configuration, security score, findings, PQC risk flag, and a downloadable hardened ipsec.conf.
 
 8. Design Decisions & Lessons Learned
@@ -192,6 +195,8 @@ Three security profiles — a production version would need to handle a wider ma
 ML traffic classifier not implemented — the ability to infer application traffic type (VoIP, video, web) from encrypted ESP packet metadata alone (packet size distribution, inter-arrival timing) is a natural, well-precedented extension but requires a properly sized labeled dataset that wasn't feasible to collect within the hackathon timeline.
 NIST citation mapping is manually curated, not automatically pulled from a live/updatable compliance database.
 10. Team & Acknowledgments
+
 Problem Statement: SIH26160, National Technical Research Organisation (NTRO)
+
 Built for Smart India Hackathon 2026
 Development assisted by Claude (Anthropic) for architecture planning, debugging, and code review, and by an AI coding agent (Antigravity CLI) for implementation of the parsing/scoring engine, under close human supervision to verify all outputs against real captured data.
