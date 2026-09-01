@@ -26,7 +26,9 @@ Important framing: the vast majority of this tool is deterministic rule-based lo
 IPsec misconfigurations (weak ciphers, deprecated hashes, small DH groups, disabled PFS) are common and invisible without expert manual review.
 Existing protocol analysis tools (Wireshark, tcpdump) provide raw visibility but require expert interpretation — there's no automated, actionable "is this secure?" answer.
 Post-quantum readiness is an emerging requirement for government/defense infrastructure; this tool provides an early, cheap way to flag deployments still using classical (non-PQC) key exchange.
-4. Architecture ```
+4. Architecture
+```
+   
                 [ Captured .pcap file ]
                           |
                           v
@@ -61,7 +63,8 @@ Post-quantum readiness is an emerging requirement for government/defense infrast
           |   - PQC risk flag              |
           |   - Downloadable fixed config  |
           +-------------------------------+
-   ```
+
+ ```
 6. Tech Stack
 Component	Tool
 Test environment	Docker containers running strongSwan (simulating two IPsec endpoints)
