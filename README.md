@@ -34,7 +34,7 @@ Given a `.pcap` network capture containing an IPsec tunnel's handshake, this too
 
 ## 4. Architecture
 
-\`\`\`
+```
                 [ Captured .pcap file ]
                           |
                           v
@@ -69,7 +69,7 @@ Given a `.pcap` network capture containing an IPsec tunnel's handshake, this too
           |   - PQC risk flag              |
           |   - Downloadable fixed config  |
           +-------------------------------+
-\`\`\`
+```
 
 ## 5. Tech Stack
 
