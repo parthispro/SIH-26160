@@ -146,7 +146,7 @@ Three profiles are used to demonstrate the analyzer distinguishing strong vs. we
 
 Example `swanctl.conf` (Strong profile, `office-a` side — mirror IPs for `office-b`):
 
-\`\`\`
+```
 connections {
    office-tunnel {
       local_addrs  = 172.28.0.10
@@ -172,11 +172,11 @@ secrets {
       secret = "TestPSK123!"
    }
 }
-\`\`\`
+```
 
 Load and capture — **critically, start the packet capture BEFORE initiating the tunnel**, not after:
 
-\`\`\`bash
+```bash
 docker exec office-a bash -c "ipsec start && sleep 2 && swanctl --load-all"
 docker exec office-b bash -c "ipsec start && sleep 2 && swanctl --load-all"
 
@@ -187,7 +187,7 @@ docker exec office-a ping -c 3 172.28.0.20
 wait
 
 docker cp office-a:/tmp/strong.pcap ~/sih26160/captures/strong.pcap
-\`\`\`
+```
 
 Repeat with the Medium and Weak `swanctl.conf` variants (terminate the existing tunnel first with `swanctl --terminate --ike office-tunnel`, overwrite the config, reload, then repeat the capture-before-initiate sequence) to produce `medium.pcap` and `weak.pcap`.
 
@@ -224,7 +224,7 @@ This section is kept intentionally honest, since it reflects real engineering ju
 
 - Problem Statement: SIH26160, National Technical Research Organisation (NTRO)
 - Built for Smart India Hackathon 2026
-- Development assisted by Claude (Anthropic) for architecture planning, debugging, and code review, and by an AI coding agent (Antigravity CLI) for implementation of the parsing/scoring engine, under close human supervision to verify all outputs against real captured data.
+- Debugging backed by Google Antigravity cli (Claude opus 4.6 - thinking).
 
 ## 11. DISCLAMER!!!
 this is not an final / propper usable model and is not recomended to use on offical / real .pcap files for analysis.
