@@ -89,7 +89,7 @@ The project simulates two IPsec endpoints ("office-a" and "office-b") using Dock
 
 ### 6.1 Prerequisites
 
-\`\`\`bash
+```bash
 sudo apt update && sudo apt full-upgrade -y
 sudo apt install -y strongswan strongswan-pki tcpdump tshark python3 python3-pip python3-venv git curl ca-certificates
 
@@ -101,38 +101,38 @@ echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.d
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo usermod -aG docker $USER && newgrp docker
-\`\`\`
+```
 
 > **Known issue:** on some live-boot/overlay-filesystem Linux setups, Docker's default `overlay2` storage driver fails to start containers (`failed to mount ... fstype: overlay ... err: invalid argument`) because you can't stack overlayfs on overlayfs. Fix by forcing the `vfs` storage driver:
-> \`\`\`bash
+>  ```bash
 > sudo mkdir -p /etc/docker
 > echo '{ "storage-driver": "vfs" }' | sudo tee /etc/docker/daemon.json
 > sudo systemctl restart docker
-> \`\`\`
+>  ```
 > This does not occur on a normal disk-based Linux install.
 
 ### 6.2 Python environment
 
-\`\`\`bash
+ ```bash
 mkdir -p ~/sih26160/{engine,captures,configs,dashboard}
 cd ~/sih26160
 python3 -m venv venv && source venv/bin/activate
 pip install scapy pyshark pandas scikit-learn streamlit fpdf2 numpy
-\`\`\`
+ ```
 
 ### 6.3 Build the two-container testbed
 
-\`\`\`bash
+ ```bash
 docker network create --subnet=172.28.0.0/16 ipsec-net
 
-docker run -dit --name office-a --network ipsec-net --ip 172.28.0.10 \\
+docker run -dit --name office-a --network ipsec-net --ip 172.28.0.10   
   --cap-add=NET_ADMIN --cap-add=NET_RAW --privileged debian:bookworm bash
-docker run -dit --name office-b --network ipsec-net --ip 172.28.0.20 \\
+docker run -dit --name office-b --network ipsec-net --ip 172.28.0.20   
   --cap-add=NET_ADMIN --cap-add=NET_RAW --privileged debian:bookworm bash
 
 docker exec office-a bash -c "apt update && apt install -y strongswan strongswan-swanctl iproute2 iputils-ping tcpdump"
 docker exec office-b bash -c "apt update && apt install -y strongswan strongswan-swanctl iproute2 iputils-ping tcpdump"
-\`\`\`
+```
 
 ### 6.4 Configure and capture each security profile
 
@@ -195,10 +195,10 @@ Repeat with the Medium and Weak `swanctl.conf` variants (terminate the existing 
 
 ## 7. Running the Analyzer
 
-\`\`\`bash
+ ```bash
 source venv/bin/activate
 streamlit run dashboard/app.py
-\`\`\`
+```
 
 Upload any of the three sample pcaps (or a real IPsec capture) to see the extracted configuration, security score, findings, PQC risk flag, and a downloadable hardened `ipsec.conf`.
 
